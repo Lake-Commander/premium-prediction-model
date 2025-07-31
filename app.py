@@ -2,10 +2,10 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import joblib
+import os
 
-# Load model and scaler
-model = joblib.load('models/best_model.pkl')  # update path as needed
-scaler = joblib.load('models/scaler.pkl')
+# Load model
+model = joblib.load('random_forest_model.pkl')
 
 # App title
 st.title("🧮 Insurance Premium Predictor")
@@ -36,15 +36,18 @@ if submitted:
         "region_southwest": 1 if region == "southwest" else 0,
     }])
 
-    # Reorder columns if necessary (must match training order)
+    # Reorder columns to match model input
     expected_columns = model.feature_names_in_
     input_data = input_data.reindex(columns=expected_columns, fill_value=0)
 
-    # Scale features
-    scaled_input = scaler.transform(input_data)
+    # Check and apply scaler if available
+    scaler_path = "models/scaler.pkl"  # Update if your path differs
+    if os.path.exists(scaler_path):
+        scaler = joblib.load(scaler_path)
+        input_data = scaler.transform(input_data)
 
     # Predict
-    prediction = model.predict(scaled_input)[0]
+    prediction = model.predict(input_data)[0]
 
     # Display result
     st.success(f"💰 Estimated Premium: **₦{prediction:,.2f}**")

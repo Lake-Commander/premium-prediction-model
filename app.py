@@ -6,7 +6,7 @@ import pandas as pd
 import joblib
 
 # Load trained model
-model = joblib.load("xgboost_(tuned).pkl")
+model = joblib.load("random_forest_model.pkl")
 
 # Define full feature list as used in training
 FEATURES = [

@@ -1,81 +1,66 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import numpy as np
 
-# --- CACHE DATA LOADING ---
-@st.cache_data
-def load_data():
-    columns_needed = [
-        'Age', 'Gender', 'Annual Income', 'Marital Status',
-        'Education Level', 'Occupation', 'Location',
-        'Property Type', 'Policy Type'
-    ]
-    return pd.read_csv("Insurance Premium Prediction Dataset.csv", usecols=columns_needed)
+# Load model
+model = joblib.load("random_forest_model.pkl")
 
-@st.cache_resource
-def load_model():
-    return joblib.load("model.joblib")  # or your model's filename
+st.set_page_config(page_title="Insurance Premium Predictor", layout="centered")
+st.title("🧮 Insurance Premium Predictor")
 
-# --- UI CONFIG ---
-st.set_page_config(page_title="Premium Predictor", layout="centered")
-st.title("💰 Insurance Premium Predictor")
-st.markdown("Enter client details below to predict the insurance premium.")
+st.markdown("Enter client details below to estimate the insurance premium.")
 
-# --- Load Data and Model ---
-df = load_data()
-model = load_model()
-
-# --- Cached Dropdown Values ---
-@st.cache_data
-def get_dropdowns(df):
-    return {
-        "gender": df['Gender'].dropna().unique().tolist(),
-        "marital": df['Marital Status'].dropna().unique().tolist(),
-        "education": df['Education Level'].dropna().unique().tolist(),
-        "occupation": df['Occupation'].dropna().unique().tolist(),
-        "location": df['Location'].dropna().unique().tolist(),
-        "property_type": df['Property Type'].dropna().unique().tolist(),
-        "policy_type": df['Policy Type'].dropna().unique().tolist()
-    }
-
-dropdowns = get_dropdowns(df)
-
-# --- Form ---
 with st.form("prediction_form"):
-    col1, col2 = st.columns(2)
+    age = st.slider("Age", 18, 64, 30)
+    gender = st.selectbox("Gender", ["Male", "Female"])
+    annual_income = st.slider("Annual Income", 0, 150000, 50000)
+    marital_status = st.selectbox("Marital Status", ["Married", "Single", "Divorced"])
+    dependents = st.slider("Number of Dependents", 0, 4, 1)
+    education = st.selectbox("Education Level", ["Master's", "Bachelor's", "PhD", "High School"])
+    occupation = st.selectbox("Occupation", ["Self-Employed", "Employed", "Unemployed"])
+    health_score = st.slider("Health Score", 0.0, 100.0, 50.0)
+    location = st.selectbox("Location", ["Urban", "Suburban", "Rural"])
+    policy_type = st.selectbox("Policy Type", ["Comprehensive", "Premium", "Basic"])
+    previous_claims = st.slider("Previous Claims", 0, 9, 0)
+    vehicle_age = st.slider("Vehicle Age", 0, 19, 5)
+    credit_score = st.slider("Credit Score", 300, 850, 600)
+    insurance_duration = st.slider("Insurance Duration (years)", 1, 9, 3)
+    smoking = st.selectbox("Smoking Status", ["Yes", "No"])
+    exercise = st.selectbox("Exercise Frequency", ["Daily", "Weekly", "Monthly", "Rarely"])
+    feedback = st.selectbox("Customer Feedback", ["Poor", "Average", "Good"])
+    property_type = st.selectbox("Property Type", ["Condo", "House", "Apartment"])
 
-    with col1:
-        age = st.slider("Age", 18, 100, 35)
-        gender = st.selectbox("Gender", dropdowns['gender'])
-        income = st.number_input("Annual Income (USD)", min_value=1000, value=50000)
-        marital_status = st.selectbox("Marital Status", dropdowns['marital'])
-        education = st.selectbox("Education Level", dropdowns['education'])
+    submitted = st.form_submit_button("Predict")
 
-    with col2:
-        occupation = st.selectbox("Occupation", dropdowns['occupation'])
-        location = st.selectbox("Location", dropdowns['location'])
-        property_type = st.selectbox("Property Type", dropdowns['property_type'])
-        policy_type = st.selectbox("Policy Type", dropdowns['policy_type'])
-
-    submitted = st.form_submit_button("Predict Premium")
-
-# --- Prediction ---
 if submitted:
-    try:
-        input_df = pd.DataFrame([{
-            'Age': age,
-            'Gender': gender,
-            'Annual Income': income,
-            'Marital Status': marital_status,
-            'Education Level': education,
-            'Occupation': occupation,
-            'Location': location,
-            'Property Type': property_type,
-            'Policy Type': policy_type
-        }])
+    # Construct DataFrame manually in correct order (update with your actual model features)
+    input_data = pd.DataFrame([{
+        "Age": age,
+        "Gender": gender,
+        "Annual Income": annual_income,
+        "Marital Status": marital_status,
+        "Number of Dependents": dependents,
+        "Education Level": education,
+        "Occupation": occupation,
+        "Health Score": health_score,
+        "Location": location,
+        "Policy Type": policy_type,
+        "Previous Claims": previous_claims,
+        "Vehicle Age": vehicle_age,
+        "Credit Score": credit_score,
+        "Insurance Duration": insurance_duration,
+        "Smoking Status": smoking,
+        "Exercise Frequency": exercise,
+        "Customer Feedback": feedback,
+        "Property Type": property_type
+    }])
 
-        prediction = model.predict(input_df)[0]
-        st.success(f"💸 Predicted Insurance Premium: **${prediction:,.2f}**")
+    # You may need to apply the same preprocessing steps here as in training
+    # (encoding, scaling, etc.)
 
-    except Exception as e:
-        st.error(f"❌ Prediction failed: {e}")
+    # NOTE: Apply preprocessing here if needed (e.g., OneHotEncoder, scaler)
+    # For demo, assuming model accepts raw input
+
+    prediction = model.predict(input_data)[0]
+    st.success(f"💰 Estimated Premium: **₦{prediction:,.2f}**")

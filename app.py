@@ -1,50 +1,66 @@
 import streamlit as st
-import numpy as np
 import pandas as pd
 import joblib
+import numpy as np
 
-# Load model and scaler
-model = joblib.load('random_forest_model.pkl')  # update path as needed
-#scaler = joblib.load('models/scaler.pkl')
+# Load model
+model = joblib.load("random_forest_model.pkl")
 
-# App title
+st.set_page_config(page_title="Insurance Premium Predictor", layout="centered")
 st.title("🧮 Insurance Premium Predictor")
+
 st.markdown("Enter client details below to estimate the insurance premium.")
 
-# Input form
-with st.form("input_form"):
-    age = st.number_input("Age", min_value=18, max_value=100, value=30)
+with st.form("prediction_form"):
+    age = st.slider("Age", 18, 64, 30)
     gender = st.selectbox("Gender", ["Male", "Female"])
-    bmi = st.number_input("BMI", min_value=10.0, max_value=50.0, value=22.0)
-    children = st.slider("Number of Children", 0, 5, 1)
-    smoker = st.selectbox("Smoker", ["Yes", "No"])
-    region = st.selectbox("Region", ["northeast", "northwest", "southeast", "southwest"])
+    annual_income = st.slider("Annual Income", 0, 150000, 50000)
+    marital_status = st.selectbox("Marital Status", ["Married", "Single", "Divorced"])
+    dependents = st.slider("Number of Dependents", 0, 4, 1)
+    education = st.selectbox("Education Level", ["Master's", "Bachelor's", "PhD", "High School"])
+    occupation = st.selectbox("Occupation", ["Self-Employed", "Employed", "Unemployed"])
+    health_score = st.slider("Health Score", 0.0, 100.0, 50.0)
+    location = st.selectbox("Location", ["Urban", "Suburban", "Rural"])
+    policy_type = st.selectbox("Policy Type", ["Comprehensive", "Premium", "Basic"])
+    previous_claims = st.slider("Previous Claims", 0, 9, 0)
+    vehicle_age = st.slider("Vehicle Age", 0, 19, 5)
+    credit_score = st.slider("Credit Score", 300, 850, 600)
+    insurance_duration = st.slider("Insurance Duration (years)", 1, 9, 3)
+    smoking = st.selectbox("Smoking Status", ["Yes", "No"])
+    exercise = st.selectbox("Exercise Frequency", ["Daily", "Weekly", "Monthly", "Rarely"])
+    feedback = st.selectbox("Customer Feedback", ["Poor", "Average", "Good"])
+    property_type = st.selectbox("Property Type", ["Condo", "House", "Apartment"])
 
     submitted = st.form_submit_button("Predict")
 
-# Preprocess input
 if submitted:
+    # Construct DataFrame manually in correct order (update with your actual model features)
     input_data = pd.DataFrame([{
-        "age": age,
-        "sex": 1 if gender == "Male" else 0,
-        "bmi": bmi,
-        "children": children,
-        "smoker": 1 if smoker == "Yes" else 0,
-        "region_northeast": 1 if region == "northeast" else 0,
-        "region_northwest": 1 if region == "northwest" else 0,
-        "region_southeast": 1 if region == "southeast" else 0,
-        "region_southwest": 1 if region == "southwest" else 0,
+        "Age": age,
+        "Gender": gender,
+        "Annual Income": annual_income,
+        "Marital Status": marital_status,
+        "Number of Dependents": dependents,
+        "Education Level": education,
+        "Occupation": occupation,
+        "Health Score": health_score,
+        "Location": location,
+        "Policy Type": policy_type,
+        "Previous Claims": previous_claims,
+        "Vehicle Age": vehicle_age,
+        "Credit Score": credit_score,
+        "Insurance Duration": insurance_duration,
+        "Smoking Status": smoking,
+        "Exercise Frequency": exercise,
+        "Customer Feedback": feedback,
+        "Property Type": property_type
     }])
 
-    # Reorder columns if necessary (must match training order)
-    expected_columns = model.feature_names_in_
-    input_data = input_data.reindex(columns=expected_columns, fill_value=0)
+    # You may need to apply the same preprocessing steps here as in training
+    # (encoding, scaling, etc.)
 
-    # Scale features
-    scaled_input = scaler.transform(input_data)
+    # NOTE: Apply preprocessing here if needed (e.g., OneHotEncoder, scaler)
+    # For demo, assuming model accepts raw input
 
-    # Predict
-    prediction = model.predict(scaled_input)[0]
-
-    # Display result
+    prediction = model.predict(input_data)[0]
     st.success(f"💰 Estimated Premium: **₦{prediction:,.2f}**")

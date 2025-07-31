@@ -1,121 +1,120 @@
+# app.py
+
 import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
-import math
 
 # Load model
 model = joblib.load("random_forest_model.pkl")
 
-# Define exact columns expected by the model (must match training)
-model_features = [
-    'Health Score', 'Age', 'Credit Score', 'Vehicle Age',
-    'Annual Income_log', 'Annual Income', 'Insurance Duration',
-    'Number of Dependents', 'Previous Claims', 'Previous Claims_log',
-    'Gender_Male', 'Smoking Status_Yes', 'Location_Suburban', 'Property Type_Condo',
-    'Location_Urban', 'Policy Type_Premium', 'Customer Feedback_Poor',
-    'Marital Status_Single', 'Property Type_House', 'Occupation_Unknown',
-    'Marital Status_Married', 'Exercise Frequency_Monthly', 'Exercise Frequency_Rarely',
-    'Education Level_PhD', 'Customer Feedback_Good', 'Policy Type_Comprehensive',
+# Expected feature columns (from training, excluding target)
+expected_features = [
+    'Health Score', 'Age', 'Credit Score', 'Vehicle Age', 'Annual Income_log',
+    'Annual Income', 'Insurance Duration', 'Number of Dependents',
+    'Previous Claims', 'Previous Claims_log', 'Gender_Male', 'Smoking Status_Yes',
+    'Location_Suburban', 'Property Type_Condo', 'Location_Urban',
+    'Policy Type_Premium', 'Customer Feedback_Poor', 'Marital Status_Single',
+    'Property Type_House', 'Occupation_Unknown', 'Marital Status_Married',
+    'Exercise Frequency_Monthly', 'Exercise Frequency_Rarely', 'Education Level_PhD',
+    'Customer Feedback_Good', 'Policy Type_Comprehensive',
     "Education Level_Master's", 'Exercise Frequency_Weekly',
     'Education Level_High School'
 ]
 
-st.set_page_config(page_title="Insurance Premium Predictor", layout="centered")
-st.title("💼 Insurance Premium Predictor")
+# Title
+st.title("Insurance Premium Prediction")
 
-st.markdown("Fill in client details to estimate the insurance premium.")
+st.markdown("Enter customer details below to predict the insurance premium.")
 
-with st.form("predict_form"):
-    age = st.slider("Age", 18, 100, 35)
-    health_score = st.slider("Health Score", 0.0, 100.0, 50.0)
-    credit_score = st.slider("Credit Score", 300, 850, 600)
-    vehicle_age = st.slider("Vehicle Age (years)", 0, 25, 5)
-    annual_income = st.number_input("Annual Income (₦)", 10000, 10000000, 500000)
-    insurance_duration = st.slider("Insurance Duration (years)", 1, 30, 5)
-    dependents = st.slider("Number of Dependents", 0, 10, 2)
-    previous_claims = st.slider("Number of Previous Claims", 0, 20, 1)
+# User Inputs
+health_score = st.slider("Health Score", 0, 100, 50)
+age = st.slider("Age", 18, 100, 30)
+credit_score = st.slider("Credit Score", 300, 900, 600)
+vehicle_age = st.slider("Vehicle Age (years)", 0, 20, 5)
+annual_income = st.number_input("Annual Income", min_value=1000.0, step=1000.0)
+insurance_duration = st.slider("Insurance Duration (years)", 0, 30, 5)
+num_dependents = st.number_input("Number of Dependents", min_value=0, step=1)
+previous_claims = st.number_input("Previous Claims", min_value=0, step=1)
 
-    gender = st.selectbox("Gender", ["Male", "Female"])
-    smoking = st.selectbox("Smoking Status", ["Yes", "No"])
-    location = st.selectbox("Location", ["Urban", "Suburban", "Rural"])
-    property_type = st.selectbox("Property Type", ["Condo", "House", "Apartment"])
-    policy_type = st.selectbox("Policy Type", ["Comprehensive", "Premium", "Basic"])
-    feedback = st.selectbox("Customer Feedback", ["Poor", "Average", "Good"])
-    marital_status = st.selectbox("Marital Status", ["Single", "Married", "Divorced"])
-    occupation = st.selectbox("Occupation", ["Unknown", "Employed", "Self-Employed"])
-    exercise = st.selectbox("Exercise Frequency", ["Daily", "Weekly", "Monthly", "Rarely"])
-    education = st.selectbox("Education Level", ["PhD", "Master's", "High School", "Bachelor's"])
+# Categorical inputs
+gender = st.selectbox("Gender", ["Female", "Male"])
+smoking = st.selectbox("Smoking Status", ["No", "Yes"])
+location = st.selectbox("Location", ["Urban", "Suburban", "Rural"])
+property_type = st.selectbox("Property Type", ["House", "Condo", "Apartment"])
+policy_type = st.selectbox("Policy Type", ["Basic", "Comprehensive", "Premium"])
+customer_feedback = st.selectbox("Customer Feedback", ["Good", "Average", "Poor"])
+marital_status = st.selectbox("Marital Status", ["Single", "Married", "Divorced"])
+occupation = st.selectbox("Occupation", ["Professional", "Unemployed", "Unknown", "Other"])
+exercise_freq = st.selectbox("Exercise Frequency", ["Rarely", "Monthly", "Weekly", "Daily"])
+education_level = st.selectbox("Education Level", ["High School", "Bachelor's", "Master's", "PhD"])
 
-    submitted = st.form_submit_button("Predict")
+# Log-transformed features
+annual_income_log = np.log1p(annual_income)
+previous_claims_log = np.log1p(previous_claims)
 
-if submitted:
-    # Derived columns
-    annual_income_log = np.log1p(annual_income)
-    previous_claims_log = np.log1p(previous_claims)
+# Initialize feature dictionary with 0s
+input_data = dict.fromkeys(expected_features, 0)
 
-    # One-hot encoded fields (initialize all to 0, only activate selected)
-    input_dict = dict.fromkeys(model_features, 0)
+# Fill numeric fields
+input_data['Health Score'] = health_score
+input_data['Age'] = age
+input_data['Credit Score'] = credit_score
+input_data['Vehicle Age'] = vehicle_age
+input_data['Annual Income'] = annual_income
+input_data['Annual Income_log'] = annual_income_log
+input_data['Insurance Duration'] = insurance_duration
+input_data['Number of Dependents'] = num_dependents
+input_data['Previous Claims'] = previous_claims
+input_data['Previous Claims_log'] = previous_claims_log
 
-    input_dict.update({
-        "Health Score": health_score,
-        "Age": age,
-        "Credit Score": credit_score,
-        "Vehicle Age": vehicle_age,
-        "Annual Income_log": annual_income_log,
-        "Annual Income": annual_income,
-        "Insurance Duration": insurance_duration,
-        "Number of Dependents": dependents,
-        "Previous Claims": previous_claims,
-        "Previous Claims_log": previous_claims_log,
-    })
+# Fill one-hot encoded categories
+if gender == "Male":
+    input_data['Gender_Male'] = 1
+if smoking == "Yes":
+    input_data['Smoking Status_Yes'] = 1
+if location == "Urban":
+    input_data['Location_Urban'] = 1
+elif location == "Suburban":
+    input_data['Location_Suburban'] = 1
+if property_type == "Condo":
+    input_data['Property Type_Condo'] = 1
+elif property_type == "House":
+    input_data['Property Type_House'] = 1
+if policy_type == "Premium":
+    input_data['Policy Type_Premium'] = 1
+elif policy_type == "Comprehensive":
+    input_data['Policy Type_Comprehensive'] = 1
+if customer_feedback == "Poor":
+    input_data['Customer Feedback_Poor'] = 1
+elif customer_feedback == "Good":
+    input_data['Customer Feedback_Good'] = 1
+if marital_status == "Single":
+    input_data['Marital Status_Single'] = 1
+elif marital_status == "Married":
+    input_data['Marital Status_Married'] = 1
+if occupation == "Unknown":
+    input_data['Occupation_Unknown'] = 1
+if exercise_freq == "Monthly":
+    input_data['Exercise Frequency_Monthly'] = 1
+elif exercise_freq == "Rarely":
+    input_data['Exercise Frequency_Rarely'] = 1
+elif exercise_freq == "Weekly":
+    input_data['Exercise Frequency_Weekly'] = 1
+if education_level == "PhD":
+    input_data['Education Level_PhD'] = 1
+elif education_level == "Master's":
+    input_data["Education Level_Master's"] = 1
+elif education_level == "High School":
+    input_data['Education Level_High School'] = 1
 
-    # Manually encode one-hot features
-    if gender == "Male":
-        input_dict["Gender_Male"] = 1
-    if smoking == "Yes":
-        input_dict["Smoking Status_Yes"] = 1
-    if location == "Urban":
-        input_dict["Location_Urban"] = 1
-    elif location == "Suburban":
-        input_dict["Location_Suburban"] = 1
-    if property_type == "Condo":
-        input_dict["Property Type_Condo"] = 1
-    elif property_type == "House":
-        input_dict["Property Type_House"] = 1
-    if policy_type == "Premium":
-        input_dict["Policy Type_Premium"] = 1
-    elif policy_type == "Comprehensive":
-        input_dict["Policy Type_Comprehensive"] = 1
-    if feedback == "Poor":
-        input_dict["Customer Feedback_Poor"] = 1
-    elif feedback == "Good":
-        input_dict["Customer Feedback_Good"] = 1
-    if marital_status == "Single":
-        input_dict["Marital Status_Single"] = 1
-    elif marital_status == "Married":
-        input_dict["Marital Status_Married"] = 1
-    if occupation == "Unknown":
-        input_dict["Occupation_Unknown"] = 1
-    if exercise == "Monthly":
-        input_dict["Exercise Frequency_Monthly"] = 1
-    elif exercise == "Rarely":
-        input_dict["Exercise Frequency_Rarely"] = 1
-    elif exercise == "Weekly":
-        input_dict["Exercise Frequency_Weekly"] = 1
-    if education == "PhD":
-        input_dict["Education Level_PhD"] = 1
-    elif education == "Master's":
-        input_dict["Education Level_Master's"] = 1
-    elif education == "High School":
-        input_dict["Education Level_High School"] = 1
+# Convert input to DataFrame
+input_df = pd.DataFrame([input_data])
 
-    # Final DataFrame for prediction
-    input_df = pd.DataFrame([input_dict])[model_features]
-
-    # Prediction
+# Prediction
+if st.button("Predict"):
     try:
         prediction = model.predict(input_df)[0]
-        st.success(f"💸 Estimated Premium: **₦{prediction:,.2f}**")
+        st.success(f"Predicted Insurance Premium Amount: ₦{prediction:,.2f}")
     except Exception as e:
-        st.error(f"Prediction failed: {e}")
+        st.error(f"Prediction failed: {str(e)}")

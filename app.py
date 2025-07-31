@@ -2,92 +2,80 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# Load dataset to extract options
-df = pd.read_csv("Insurance Premium Prediction Dataset.csv")
+# --- CACHE DATA LOADING ---
+@st.cache_data
+def load_data():
+    columns_needed = [
+        'Age', 'Gender', 'Annual Income', 'Marital Status',
+        'Education Level', 'Occupation', 'Location',
+        'Property Type', 'Policy Type'
+    ]
+    return pd.read_csv("Insurance Premium Prediction Dataset.csv", usecols=columns_needed)
 
-# Load model and optionally a scaler if used
-model = joblib.load("random_forest_model.pkl")
+@st.cache_resource
+def load_model():
+    return joblib.load("model.joblib")  # or your model's filename
 
-# Optional scaler
-try:
-    scaler = joblib.load("models/scaler.pkl")
-    use_scaler = True
-except:
-    scaler = None
-    use_scaler = False
+# --- UI CONFIG ---
+st.set_page_config(page_title="Premium Predictor", layout="centered")
+st.title("💰 Insurance Premium Predictor")
+st.markdown("Enter client details below to predict the insurance premium.")
 
-# Get dynamic options from the dataset
-def get_unique_sorted(column):
-    values = df[column].dropna().unique()
-    return sorted(values)
+# --- Load Data and Model ---
+df = load_data()
+model = load_model()
 
-# App title
-st.title("🧮 Insurance Premium Predictor")
-st.markdown("Enter client details to estimate the insurance premium.")
-
-with st.form("input_form"):
-    age = st.slider("Age", 18, int(df["Age"].max()))
-    gender = st.selectbox("Gender", get_unique_sorted("Gender"))
-    income = st.slider("Annual Income (₦)", 10000, int(df["Annual Income"].max()))
-    marital = st.selectbox("Marital Status", get_unique_sorted("Marital Status"))
-    dependents = st.slider("Number of Dependents", 0, int(df["Number of Dependents"].max()))
-    education = st.selectbox("Education Level", get_unique_sorted("Education Level"))
-    occupation = st.selectbox("Occupation", get_unique_sorted("Occupation"))
-    health = st.slider("Health Score", 1, int(df["Health Score"].max()))
-    location = st.selectbox("Location", get_unique_sorted("Location"))
-    policy_type = st.selectbox("Policy Type", get_unique_sorted("Policy Type"))
-    prev_claims = st.slider("Previous Claims", 0, int(df["Previous Claims"].max()))
-    vehicle_age = st.slider("Vehicle Age", 0, int(df["Vehicle Age"].max()))
-    credit_score = st.slider("Credit Score", 0, int(df["Credit Score"].max()))
-    insurance_duration = st.slider("Insurance Duration (years)", 0, int(df["Insurance Duration"].max()))
-    feedback = st.selectbox("Customer Feedback", get_unique_sorted("Customer Feedback"))
-    smoking = st.selectbox("Smoking Status", get_unique_sorted("Smoking Status"))
-    exercise = st.selectbox("Exercise Frequency", get_unique_sorted("Exercise Frequency"))
-    property_type = st.selectbox("Property Type", get_unique_sorted("Property Type"))
-
-    submitted = st.form_submit_button("Predict")
-
-if submitted:
-    input_dict = {
-        "Age": age,
-        "Gender": gender,
-        "Annual Income": income,
-        "Marital Status": marital,
-        "Number of Dependents": dependents,
-        "Education Level": education,
-        "Occupation": occupation,
-        "Health Score": health,
-        "Location": location,
-        "Policy Type": policy_type,
-        "Previous Claims": prev_claims,
-        "Vehicle Age": vehicle_age,
-        "Credit Score": credit_score,
-        "Insurance Duration": insurance_duration,
-        "Customer Feedback": feedback,
-        "Smoking Status": smoking,
-        "Exercise Frequency": exercise,
-        "Property Type": property_type
+# --- Cached Dropdown Values ---
+@st.cache_data
+def get_dropdowns(df):
+    return {
+        "gender": df['Gender'].dropna().unique().tolist(),
+        "marital": df['Marital Status'].dropna().unique().tolist(),
+        "education": df['Education Level'].dropna().unique().tolist(),
+        "occupation": df['Occupation'].dropna().unique().tolist(),
+        "location": df['Location'].dropna().unique().tolist(),
+        "property_type": df['Property Type'].dropna().unique().tolist(),
+        "policy_type": df['Policy Type'].dropna().unique().tolist()
     }
 
-    input_df = pd.DataFrame([input_dict])
+dropdowns = get_dropdowns(df)
 
-    # Encode categoricals like training
-    for col in input_df.select_dtypes(include='object').columns:
-        input_df[col] = input_df[col].astype('category')
-        if col in df.columns and df[col].dtype.name == 'category':
-            input_df[col] = input_df[col].cat.set_categories(df[col].unique())
+# --- Form ---
+with st.form("prediction_form"):
+    col1, col2 = st.columns(2)
 
-    # Get dummies to match training format
-    input_df = pd.get_dummies(input_df)
-    df_encoded = pd.get_dummies(df[input_df.columns], drop_first=False)
-    input_df = input_df.reindex(columns=df_encoded.columns, fill_value=0)
+    with col1:
+        age = st.slider("Age", 18, 100, 35)
+        gender = st.selectbox("Gender", dropdowns['gender'])
+        income = st.number_input("Annual Income (USD)", min_value=1000, value=50000)
+        marital_status = st.selectbox("Marital Status", dropdowns['marital'])
+        education = st.selectbox("Education Level", dropdowns['education'])
 
-    # Scale if scaler exists
-    if use_scaler:
-        input_scaled = scaler.transform(input_df)
-    else:
-        input_scaled = input_df
+    with col2:
+        occupation = st.selectbox("Occupation", dropdowns['occupation'])
+        location = st.selectbox("Location", dropdowns['location'])
+        property_type = st.selectbox("Property Type", dropdowns['property_type'])
+        policy_type = st.selectbox("Policy Type", dropdowns['policy_type'])
 
-    # Predict
-    prediction = model.predict(input_scaled)[0]
-    st.success(f"💰 Estimated Premium: **₦{prediction:,.2f}**")
+    submitted = st.form_submit_button("Predict Premium")
+
+# --- Prediction ---
+if submitted:
+    try:
+        input_df = pd.DataFrame([{
+            'Age': age,
+            'Gender': gender,
+            'Annual Income': income,
+            'Marital Status': marital_status,
+            'Education Level': education,
+            'Occupation': occupation,
+            'Location': location,
+            'Property Type': property_type,
+            'Policy Type': policy_type
+        }])
+
+        prediction = model.predict(input_df)[0]
+        st.success(f"💸 Predicted Insurance Premium: **${prediction:,.2f}**")
+
+    except Exception as e:
+        st.error(f"❌ Prediction failed: {e}")

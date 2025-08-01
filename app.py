@@ -1,58 +1,50 @@
 import streamlit as st
 import numpy as np
+import pandas as pd
 import joblib
 
-# Load model and scaler
-model = joblib.load('models/random_forest_model.pkl')
-scaler = joblib.load('models/scaler.pkl')
+# Load model, scaler, and feature order
+model = joblib.load("models/rf_model.pkl")
+scaler = joblib.load("models/scaler.pkl")
+feature_order = joblib.load("models/feature_order.pkl")
 
-# Set title
+# Title
 st.title("Insurance Premium Prediction")
 st.subheader("Enter Customer Information")
 
-# Define input fields
-input_data = {
-    'Health Score': st.number_input("Health Score", value=0.0),
-    'Age': st.number_input("Age", value=0.0),
-    'Credit Score': st.number_input("Credit Score", value=0.0),
-    'Vehicle Age': st.number_input("Vehicle Age", value=0.0),
-    'Annual Income_log': st.number_input("Annual Income_log", value=0.0),
-    'Annual Income': st.number_input("Annual Income", value=0.0),
-    'Insurance Duration': st.number_input("Insurance Duration", value=0.0),
-    'Number of Dependents': st.number_input("Number of Dependents", value=0.0),
-    'Previous Claims': st.number_input("Previous Claims", value=0.0),
-    'Previous Claims_log': st.number_input("Previous Claims_log", value=0.0),
-    'Gender_Male': st.number_input("Gender_Male", value=0.0),
-    'Smoking Status_Yes': st.number_input("Smoking Status_Yes", value=0.0),
-    'Location_Suburban': st.number_input("Location_Suburban", value=0.0),
-    'Property Type_Condo': st.number_input("Property Type_Condo", value=0.0),
-    'Location_Urban': st.number_input("Location_Urban", value=0.0),
-    'Policy Type_Premium': st.number_input("Policy Type_Premium", value=0.0),
-    'Customer Feedback_Poor': st.number_input("Customer Feedback_Poor", value=0.0),
-    'Marital Status_Single': st.number_input("Marital Status_Single", value=0.0),
-    'Property Type_House': st.number_input("Property Type_House", value=0.0),
-    'Occupation_Unknown': st.number_input("Occupation_Unknown", value=0.0),
-    'Marital Status_Married': st.number_input("Marital Status_Married", value=0.0),
-    'Exercise Frequency_Monthly': st.number_input("Exercise Frequency_Monthly", value=0.0),
-    'Exercise Frequency_Rarely': st.number_input("Exercise Frequency_Rarely", value=0.0),
-    'Education Level_PhD': st.number_input("Education Level_PhD", value=0.0),
-    'Customer Feedback_Good': st.number_input("Customer Feedback_Good", value=0.0),
-    'Policy Type_Comprehensive': st.number_input("Policy Type_Comprehensive", value=0.0),
-    "Education Level_Master's": st.number_input("Education Level_Master's", value=0.0),
-    'Exercise Frequency_Weekly': st.number_input("Exercise Frequency_Weekly", value=0.0),
-    'Education Level_High School': st.number_input("Education Level_High School", value=0.0)
-}
+# Numerical fields
+numerical_fields = [
+    'Health Score', 'Age', 'Credit Score', 'Vehicle Age', 'Annual Income_log',
+    'Annual Income', 'Insurance Duration', 'Number of Dependents',
+    'Previous Claims', 'Previous Claims_log'
+]
 
-# Convert to array and reshape
-input_array = np.array([list(input_data.values())])
-scaled_input = scaler.transform(input_array)
+# Binary/encoded fields
+binary_fields = feature_order.copy()
+for field in numerical_fields:
+    if field in binary_fields:
+        binary_fields.remove(field)
 
-# Predict
+# UI inputs
+user_inputs = {}
+
+# Input for numerical fields
+for field in numerical_fields:
+    user_inputs[field] = st.number_input(field, value=0.0, format="%.2f")
+
+# Input for binary fields (checkbox for 0/1)
+for field in binary_fields:
+    user_inputs[field] = 1.0 if st.checkbox(field) else 0.0
+
+# Prepare input in correct order
+input_data = pd.DataFrame([[user_inputs.get(col, 0.0) for col in feature_order]], columns=feature_order)
+
+# Prediction
 if st.button("Predict Premium"):
-    pred_log = model.predict(scaled_input)[0]
-
-    # Apply clipping to prevent negative predictions
-    pred_log = max(pred_log, 0)  # clip at zero log
-    pred = max(np.expm1(pred_log), 1000)  # apply inverse log and floor of ₦1000
-
-    st.success(f"Estimated Premium: ₦{pred:,.2f}")
+    try:
+        input_scaled = scaler.transform(input_data)
+        log_pred = model.predict(input_scaled)[0]
+        final_pred = np.expm1(log_pred)
+        st.success(f"Estimated Premium: ₦{final_pred:,.2f}")
+    except Exception as e:
+        st.error(f"Prediction failed: {e}")

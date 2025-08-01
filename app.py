@@ -4,7 +4,7 @@ import pandas as pd
 import joblib
 
 # Load model, scaler, and feature order
-model = joblib.load("models/rf_model.pkl")
+model = joblib.load("models/random_forest_model.pkl")
 scaler = joblib.load("models/scaler.pkl")
 feature_order = joblib.load("models/feature_order.pkl")
 

@@ -7,7 +7,7 @@ import os
 # Load trained model
 @st.cache_resource
 def load_model():
-    with open("model.pkl", "rb") as f:
+    with open("random_forest_model.pkl", "rb") as f:
         return joblib.load(f)
 
 model = load_model()

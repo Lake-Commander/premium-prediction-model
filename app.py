@@ -1,110 +1,79 @@
 import streamlit as st
 import numpy as np
-import pandas as pd
 import joblib
-import os
 
-# Load trained model
+# === Load model and scaler ===
 @st.cache_resource
 def load_model():
-    with open("random_forest_model.pkl", "rb") as f:
-        return joblib.load(f)
+    model = joblib.load('models/random_forest_model.pkl')
+    scaler = joblib.load('models/scaler.pkl')
+    return model, scaler
 
-model = load_model()
+model, scaler = load_model()
 
-# List of all expected features (used during training)
-FEATURES = [
-    'Premium Amount_log', 'Health Score', 'Age', 'Credit Score', 'Vehicle Age',
-    'Annual Income_log', 'Annual Income', 'Insurance Duration',
-    'Number of Dependents', 'Previous Claims', 'Previous Claims_log',
-    'Gender_Male', 'Smoking Status_Yes', 'Location_Suburban',
-    'Property Type_Condo', 'Location_Urban', 'Policy Type_Premium',
-    'Customer Feedback_Poor', 'Marital Status_Single', 'Property Type_House',
-    'Occupation_Unknown', 'Marital Status_Married',
-    'Exercise Frequency_Monthly', 'Exercise Frequency_Rarely',
-    'Education Level_PhD', 'Customer Feedback_Good',
-    'Policy Type_Comprehensive', "Education Level_Master's",
-    'Exercise Frequency_Weekly', 'Education Level_High School'
-]
-
-st.set_page_config(page_title="Insurance Premium Predictor", layout="centered")
+# === App Layout ===
+st.set_page_config(page_title="Insurance Premium Predictor", layout="wide")
 st.title("💸 Insurance Premium Prediction App")
-st.markdown("Enter your details below to predict the premium amount (log-scaled).")
+st.markdown("Enter customer details to estimate their insurance premium.")
 
-# === User Input ===
+# === Input fields ===
 with st.form("prediction_form"):
-    st.subheader("Basic Information")
-    age = st.number_input("Age", 18, 100, step=1)
-    health_score = st.slider("Health Score (0-100)", 0, 100, value=70)
-    credit_score = st.slider("Credit Score (300-850)", 300, 850, value=600)
-    vehicle_age = st.number_input("Vehicle Age (years)", 0, 50, step=1)
-    insurance_duration = st.number_input("Insurance Duration (years)", 0.0, 50.0, step=0.5)
-    num_dependents = st.number_input("Number of Dependents", 0, 10, step=1)
-    prev_claims = st.number_input("Number of Previous Claims", 0, 20, step=1)
-    annual_income = st.number_input("Annual Income ($)", 1000, 1_000_000, step=1000)
+    st.subheader("Customer Information")
 
-    st.subheader("Lifestyle & Demographics")
-    gender = st.selectbox("Gender", ["Male", "Female"])
-    smoker = st.selectbox("Smoking Status", ["Yes", "No"])
-    location = st.selectbox("Location", ["Urban", "Suburban", "Rural"])
-    marital_status = st.selectbox("Marital Status", ["Single", "Married", "Divorced"])
-    occupation = st.selectbox("Occupation", ["Unknown", "Employed", "Unemployed", "Student"])
-    education = st.selectbox("Education Level", ["High School", "Bachelor's", "Master's", "PhD"])
-    feedback = st.selectbox("Customer Feedback", ["Poor", "Average", "Good"])
-    property_type = st.selectbox("Property Type", ["Apartment", "House", "Condo"])
-    policy_type = st.selectbox("Policy Type", ["Basic", "Comprehensive", "Premium"])
-    exercise = st.selectbox("Exercise Frequency", ["Rarely", "Monthly", "Weekly", "Daily"])
+    col1, col2, col3 = st.columns(3)
 
-    submitted = st.form_submit_button("🔮 Predict")
+    with col1:
+        health_score = st.slider("Health Score", 0, 100, 50)
+        age = st.slider("Age", 18, 100, 35)
+        credit_score = st.slider("Credit Score", 300, 900, 600)
+        vehicle_age = st.number_input("Vehicle Age (years)", 0.0, 30.0, 5.0)
+        annual_income = st.number_input("Annual Income", 10000, 1000000, 50000)
+        insurance_duration = st.slider("Insurance Duration (years)", 0, 30, 5)
+        num_dependents = st.slider("Number of Dependents", 0, 10, 2)
+        previous_claims = st.slider("Number of Previous Claims", 0, 10, 0)
 
+    with col2:
+        gender_male = st.selectbox("Gender", ["Male", "Female"]) == "Male"
+        smoking_yes = st.selectbox("Smoking Status", ["No", "Yes"]) == "Yes"
+        location_suburban = st.selectbox("Location", ["Urban", "Suburban", "Rural"]) == "Suburban"
+        location_urban = st.selectbox("Urban Area?", ["No", "Yes"]) == "Yes"
+        property_type_condo = st.selectbox("Property Type", ["House", "Condo", "Apartment"]) == "Condo"
+        property_type_house = st.selectbox("Is House?", ["No", "Yes"]) == "Yes"
+        marital_status_single = st.selectbox("Marital Status", ["Married", "Single"]) == "Single"
+        marital_status_married = st.selectbox("Is Married?", ["No", "Yes"]) == "Yes"
+
+    with col3:
+        policy_type_premium = st.selectbox("Policy Type", ["Standard", "Premium"]) == "Premium"
+        feedback_poor = st.selectbox("Customer Feedback", ["Good", "Average", "Poor"]) == "Poor"
+        occupation_unknown = st.selectbox("Occupation Unknown?", ["No", "Yes"]) == "No"
+        exercise_freq = st.slider("Exercise Frequency (days/week)", 0, 7, 3)
+
+    submitted = st.form_submit_button("Predict Premium")
+
+# === Predict ===
 if submitted:
-    # === Construct feature vector ===
-    data = {
-        'Premium Amount_log': 0,  # Placeholder, will not affect prediction
-        'Health Score': health_score,
-        'Age': age,
-        'Credit Score': credit_score,
-        'Vehicle Age': vehicle_age,
-        'Annual Income_log': np.log1p(annual_income),
-        'Annual Income': annual_income,
-        'Insurance Duration': insurance_duration,
-        'Number of Dependents': num_dependents,
-        'Previous Claims': prev_claims,
-        'Previous Claims_log': np.log1p(prev_claims),
-        'Gender_Male': int(gender == "Male"),
-        'Smoking Status_Yes': int(smoker == "Yes"),
-        'Location_Suburban': int(location == "Suburban"),
-        'Location_Urban': int(location == "Urban"),
-        'Property Type_Condo': int(property_type == "Condo"),
-        'Property Type_House': int(property_type == "House"),
-        'Policy Type_Premium': int(policy_type == "Premium"),
-        'Policy Type_Comprehensive': int(policy_type == "Comprehensive"),
-        'Customer Feedback_Poor': int(feedback == "Poor"),
-        'Customer Feedback_Good': int(feedback == "Good"),
-        'Marital Status_Single': int(marital_status == "Single"),
-        'Marital Status_Married': int(marital_status == "Married"),
-        'Occupation_Unknown': int(occupation == "Unknown"),
-        'Exercise Frequency_Monthly': int(exercise == "Monthly"),
-        'Exercise Frequency_Rarely': int(exercise == "Rarely"),
-        'Exercise Frequency_Weekly': int(exercise == "Weekly"),
-        'Education Level_High School': int(education == "High School"),
-        "Education Level_Master's": int(education == "Master's"),
-        'Education Level_PhD': int(education == "PhD"),
-    }
+    # === Derived features ===
+    annual_income_log = np.log1p(annual_income)
+    previous_claims_log = np.log1p(previous_claims)
 
-    input_df = pd.DataFrame([data])
+    input_data = np.array([
+        health_score, age, credit_score, vehicle_age, 
+        annual_income_log, annual_income, insurance_duration, 
+        num_dependents, previous_claims, previous_claims_log,
+        int(gender_male), int(smoking_yes), int(location_suburban),
+        int(property_type_condo), int(location_urban), int(policy_type_premium),
+        int(feedback_poor), int(marital_status_single), int(property_type_house),
+        int(occupation_unknown == "Yes"), int(marital_status_married),
+        exercise_freq
+    ])
 
-    # Ensure all 30 features are present in correct order
-    for col in FEATURES:
-        if col not in input_df.columns:
-            input_df[col] = 0
+    # Pad zeros if original model had more features (placeholder)
+    if input_data.shape[0] < scaler.n_features_in_:
+        padding = np.zeros(scaler.n_features_in_ - input_data.shape[0])
+        input_data = np.concatenate([input_data, padding])
 
-    input_df = input_df[FEATURES]
+    input_scaled = scaler.transform([input_data])
+    log_prediction = model.predict(input_scaled)[0]
+    premium = np.expm1(log_prediction)
 
-    # Make prediction
-    prediction_log = model.predict(input_df)[0]
-    predicted_amount = np.expm1(prediction_log)
-
-    st.success(f"💰 Estimated Premium Amount: **${predicted_amount:,.2f}**")
-
-    st.caption("Note: This prediction is based on a machine learning model and may not reflect actual insurance pricing.")
+    st.success(f"💰 **Estimated Premium Amount:** ${premium:,.2f}")

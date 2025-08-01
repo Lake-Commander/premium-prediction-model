@@ -4,7 +4,7 @@ import numpy as np
 import joblib
 
 # Load the model and scaler
-model = joblib.load("models/model.pkl")
+model = joblib.load("models/random_forest_model.pkl")
 scaler = joblib.load("models/scaler.pkl")
 
 # Define the exact feature order used during training

@@ -1,79 +1,86 @@
+# app.py
 import streamlit as st
 import numpy as np
+import pandas as pd
 import joblib
 import os
 
-# Load the model and scaler
+# Load model, scaler, and feature order
 model = joblib.load("models/rf_model.pkl")
 scaler = joblib.load("models/scaler.pkl")
 feature_order = joblib.load("models/feature_order.pkl")
 
-# Define realistic defaults for numerical features
-realistic_defaults = {
-    "Health Score": 75.0,
-    "Age": 35.0,
-    "Credit Score": 650.0,
-    "Vehicle Age": 3.0,
-    "Annual Income": 60000.0,
-    "Annual Income_log": np.log1p(60000.0),
-    "Insurance Duration": 2.0,
-    "Number of Dependents": 2.0,
-    "Previous Claims": 1.0,
-    "Previous Claims_log": np.log1p(1.0),
-    "Premium Amount_log": 10.0  # Not user input
-}
+st.title("Insurance Premium Prediction")
 
-# Define default values (1 for common categories, 0 otherwise)
-category_defaults = {
-    "Gender_Male": 1.0,
-    "Smoking Status_Yes": 0.0,
-    "Location_Suburban": 1.0,
-    "Location_Urban": 0.0,
-    "Property Type_Condo": 1.0,
-    "Property Type_House": 0.0,
-    "Policy Type_Premium": 1.0,
-    "Policy Type_Comprehensive": 0.0,
-    "Customer Feedback_Poor": 0.0,
-    "Customer Feedback_Good": 1.0,
-    "Marital Status_Single": 1.0,
-    "Marital Status_Married": 0.0,
-    "Occupation_Unknown": 0.0,
-    "Exercise Frequency_Monthly": 1.0,
-    "Exercise Frequency_Rarely": 0.0,
-    "Exercise Frequency_Weekly": 0.0,
-    "Education Level_High School": 0.0,
-    "Education Level_Master's": 1.0,
-    "Education Level_PhD": 0.0
-}
+st.markdown("Enter customer details to estimate their insurance premium.")
 
-# Streamlit UI
-st.set_page_config(page_title="Insurance Premium Estimator", layout="centered")
-st.title("🧮 Insurance Premium Estimator")
-st.write("Enter customer details to estimate their insurance premium.")
+# === USER INPUT FORM ===
+with st.form("input_form"):
+    age = st.slider("Age", 18, 100, 30)
+    health_score = st.slider("Health Score", 0, 100, 80)
+    credit_score = st.slider("Credit Score", 0, 100, 70)
+    vehicle_age = st.slider("Vehicle Age (years)", 0, 20, 5)
+    annual_income = st.number_input("Annual Income ($)", min_value=1000.0, max_value=1_000_000.0, value=50_000.0)
+    insurance_duration = st.slider("Insurance Duration (years)", 1, 30, 5)
+    num_dependents = st.slider("Number of Dependents", 0, 10, 2)
+    previous_claims = st.number_input("Previous Claims ($)", min_value=0.0, max_value=1_000_000.0, value=0.0)
 
-user_input = {}
+    # Categorical
+    gender = st.selectbox("Gender", ["Male", "Female"])
+    smoking_status = st.selectbox("Smoking Status", ["Yes", "No"])
+    location = st.selectbox("Location", ["Urban", "Suburban", "Rural"])
+    property_type = st.selectbox("Property Type", ["House", "Condo", "Apartment"])
+    policy_type = st.selectbox("Policy Type", ["Basic", "Comprehensive", "Premium"])
+    customer_feedback = st.selectbox("Customer Feedback", ["Good", "Average", "Poor"])
+    marital_status = st.selectbox("Marital Status", ["Single", "Married", "Divorced"])
+    occupation = st.selectbox("Occupation", ["Employed", "Self-Employed", "Unemployed", "Unknown"])
+    education_level = st.selectbox("Education Level", ["High School", "Bachelor's", "Master's", "PhD"])
+    exercise_frequency = st.selectbox("Exercise Frequency", ["Rarely", "Monthly", "Weekly", "Daily"])
 
-# Generate input fields based on feature order
-for feature in feature_order:
-    if feature == "Premium Amount_log":
-        continue  # Don't take this as input
-    elif feature in realistic_defaults:
-        user_input[feature] = st.number_input(feature, value=round(realistic_defaults[feature], 2))
-    else:
-        user_input[feature] = st.number_input(feature, value=float(category_defaults.get(feature, 0.0)))
+    submitted = st.form_submit_button("Predict")
 
-# Predict button
-if st.button("Estimate Premium"):
-    # Prepare input array in correct order
-    input_array = np.array([user_input[feat] for feat in feature_order if feat != "Premium Amount_log"]).reshape(1, -1)
+# === FEATURE ENGINEERING & PREDICTION ===
+if submitted:
+    annual_income_log = np.log1p(annual_income)
+    previous_claims_log = np.log1p(previous_claims)
 
-    # Scale the input
-    scaled_input = scaler.transform(input_array)
+    # Base numerical features
+    base_features = {
+        "Health Score": health_score,
+        "Age": age,
+        "Credit Score": credit_score,
+        "Vehicle Age": vehicle_age,
+        "Annual Income": annual_income,
+        "Annual Income_log": annual_income_log,
+        "Insurance Duration": insurance_duration,
+        "Number of Dependents": num_dependents,
+        "Previous Claims": previous_claims,
+        "Previous Claims_log": previous_claims_log,
+    }
 
-    # Predict log premium
-    log_prediction = model.predict(scaled_input)[0]
+    # One-hot categorical features
+    one_hot_features = {
+        f"Gender_{gender}": 1,
+        f"Smoking Status_{smoking_status}": 1,
+        f"Location_{location}": 1,
+        f"Property Type_{property_type}": 1,
+        f"Policy Type_{policy_type}": 1,
+        f"Customer Feedback_{customer_feedback}": 1,
+        f"Marital Status_{marital_status}": 1,
+        f"Occupation_{occupation}": 1,
+        f"Education Level_{education_level}": 1,
+        f"Exercise Frequency_{exercise_frequency}": 1,
+    }
 
-    # Convert back to original premium value
-    predicted_premium = np.expm1(log_prediction)
+    # Combine and fill missing features with 0
+    all_features = {**base_features, **one_hot_features}
+    final_input = pd.DataFrame([[all_features.get(feat, 0) for feat in feature_order]], columns=feature_order)
 
-    st.success(f"💰 Estimated Insurance Premium: **${predicted_premium:,.2f}**")
+    # Scale input
+    scaled_input = scaler.transform(final_input)
+
+    # Predict log premium and transform back
+    pred_log = model.predict(scaled_input)[0]
+    premium = np.expm1(pred_log)
+
+    st.success(f"Estimated Insurance Premium: **${premium:,.2f}**")

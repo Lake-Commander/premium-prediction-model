@@ -1,3 +1,8 @@
+# ⚠️ Disclaimer
+This insurance premium prediction project is intended strictly for **educational purposes** only.
+The model, predictions, and results showcased in this repository should not be used for any real-world insurance decision-making.
+All data used is either synthetic or anonymized and does not represent actual insurance records.
+
 # 🛡️ Insurance Premium Prediction Model
 
 This project presents an intelligent system that predicts **insurance premium amounts** based on customer profiles using a machine learning model. It aims to support insurance companies in **pricing policies more accurately**, minimizing risk, and improving customer segmentation.
@@ -90,6 +95,32 @@ premium-prediction-model/
 - `scripts/`: Python scripts for preprocessing, training, etc.  
 - `utils/`: Helper modules and functions  
 
+
+---
+
+## 🧠 Train Your Own Model
+
+To train your own insurance premium prediction model using this project:
+
+### Open the training notebook
+
+You’ll find a Jupyter Notebook a.ipynb in the main project root.
+
+### Run the notebook cells
+The notebook will walk you through:
+
+1. Loading and preprocessing the dataset
+
+2. Feature engineering and transformations
+
+3. Model training
+
+4. Evaluation and saving of trained models to the models/ folder
+
+### Use the trained model
+Once training is complete, the saved models can be used by the app.py script to make predictions via the Streamlit interface.
+
+> ℹ️ Ensure your dataset follows the expected schema. For reference, check the sample dataset (Insurance Premium Prediction Dataset.csv) used in this training.
 
 ---
 

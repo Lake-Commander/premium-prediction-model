@@ -41,8 +41,8 @@ with st.form("input_form"):
 
 # === FEATURE ENGINEERING & PREDICTION ===
 if submitted:
-    annual_income_log = np.log1p(annual_income)
-    previous_claims_log = np.log1p(previous_claims)
+    annual_income_log = (annual_income)
+    previous_claims_log = (previous_claims)
 
     # Base numerical features
     base_features = {
@@ -81,6 +81,6 @@ if submitted:
 
     # Predict log premium and transform back
     pred_log = model.predict(scaled_input)[0]
-    premium = np.expm1(pred_log)
+    premium = (pred_log)
 
     st.success(f"Estimated Insurance Premium: **${premium:,.2f}**")

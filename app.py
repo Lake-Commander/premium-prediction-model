@@ -132,46 +132,38 @@ if submitted:
 st.markdown("---")
 st.header("📈 Exploratory Data Analysis (EDA)")
 
-# === Univariate Analysis ===
-with st.expander("🔹 Univariate Analysis"):
-    st.subheader("📊 Numerical Features")
-    st.image("univariate/hist_age.png", caption="Age Distribution", use_column_width=True)
-    st.image("univariate/hist_health_score.png", caption="Health Score Distribution", use_column_width=True)
-    st.image("univariate/hist_credit_score.png", caption="Credit Score Distribution", use_column_width=True)
-    st.image("univariate/hist_annual_income.png", caption="Annual Income Distribution", use_column_width=True)
-    st.image("univariate/hist_insurance_duration.png", caption="Insurance Duration Distribution", use_column_width=True)
+def show_images_from_folder(folder, title=None):
+    if title:
+        st.subheader(title)
+    if not os.path.exists(folder):
+        st.warning(f"Folder not found: {folder}")
+        return
+    for file in sorted(os.listdir(folder)):
+        if file.endswith(".png"):
+            st.image(os.path.join(folder, file), caption=file.replace("_", " ").replace(".png", ""), use_column_width=True)
 
-    st.subheader("📋 Categorical Features")
-    st.image("univariate/count_gender.png", caption="Gender Count", use_column_width=True)
-    st.image("univariate/count_education_level.png", caption="Education Level Count", use_column_width=True)
-    st.image("univariate/count_policy_type.png", caption="Policy Type Count", use_column_width=True)
+st.markdown("---")
+st.title("📊 Insurance Premium EDA Dashboard")
 
-# === Bivariate Analysis ===
-with st.expander("🔸 Bivariate Analysis"):
-    st.subheader("📈 Relationships with Target")
-    st.image("output_graphs/bivariate/scatterplot_Annual Income.png", caption="Annual Income vs Premium", use_column_width=True)
-    st.image("output_graphs/bivariate/scatterplot_Health Score.png", caption="Health Score vs Premium", use_column_width=True)
-    st.image("output_graphs/bivariate/scatterplot_Age.png", caption="Age vs Premium", use_column_width=True)
+# Tabs for sections
+tabs = st.tabs(["📌 Univariate", "🔁 Bivariate", "🧩 Multivariate", "📎 Categorical Trends"])
 
-    st.subheader("🧩 Boxplots by Category")
-    st.image("output_graphs/bivariate/boxplot_Gender.png", caption="Gender vs Premium", use_column_width=True)
-    st.image("output_graphs/bivariate/boxplot_Policy Type.png", caption="Policy Type vs Premium", use_column_width=True)
-    st.image("output_graphs/bivariate/boxplot_Occupation.png", caption="Occupation vs Premium", use_column_width=True)
+with tabs[0]:
+    st.markdown("### 📌 Univariate Analysis")
+    show_images_from_folder("univariate", "Univariate Distributions")
 
-    st.subheader("📌 Correlation Heatmap")
-    st.image("output_graphs/bivariate/correlation_heatmap.png", caption="Correlation Matrix", use_column_width=True)
+with tabs[1]:
+    st.markdown("### 🔁 Bivariate Analysis")
+    show_images_from_folder("output_graphs/bivariate", "Output Graphs (Bivariate)")
+    show_images_from_folder("bivariate_analysis", "Bivariate Analysis")
+    
+with tabs[2]:
+    st.markdown("### 🧩 Multivariate Analysis")
+    show_images_from_folder("multivariate", "Multivariate Trends")
+    show_images_from_folder("output_graphs/multivariate", "Output Graphs (Multivariate)")
 
-# === Multivariate Analysis ===
-with st.expander("🔺 Multivariate Analysis"):
-    st.subheader("📊 Interaction Trends")
-    st.image("multivariate/Age_vs_Premium_Amount_regplot.png", caption="Age vs Premium (Regplot)", use_column_width=True)
-    st.image("multivariate/Annual Income_vs_Premium_Amount_regplot.png", caption="Annual Income vs Premium (Regplot)", use_column_width=True)
-    st.image("multivariate/Previous Claims_vs_Premium_Amount_regplot.png", caption="Previous Claims vs Premium (Regplot)", use_column_width=True)
+with tabs[3]:
+    st.markdown("### 📎 Categorical Correlation & Premium Trends")
+    show_images_from_folder("premium_trend_correlation_categorical", "Categorical Premium Trends")
 
-    st.subheader("🧠 Categorical Interactions")
-    st.image("multivariate/groupedbar_education_level_marital_status_by_gender.png", caption="Education vs Marital Status by Gender", use_column_width=True)
-    st.image("multivariate/groupedbar_smoking_status_exercise_frequency_by_policy_type.png", caption="Smoking & Exercise vs Policy Type", use_column_width=True)
-
-    st.subheader("📌 Full Correlation Matrix")
-    st.image("premium_trend_correlation_categorical/correlation_matrix.png", caption="Full Correlation Heatmap", use_column_width=True)
 

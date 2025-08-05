@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 # Load model and dependencies
-model = joblib.load("models/random_forest_model.pkl")
+model = joblib.load("models/rf_model.pkl")
 scaler = joblib.load("models/scaler.pkl")
 feature_columns = joblib.load("models/feature_order.pkl")
 

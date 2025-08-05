@@ -68,7 +68,19 @@ To develop and deploy a machine learning model that:
 
 ## 📦 Project Structure
 
-<pre><code>## 📁 Project Folder Structure <code> premium-prediction-model/ │ ├── models/ # Saved machine learning models ├── output_graphs/ # Visualizations (EDA, Feature Importance, etc.) │ ├── bivariate/ │ ├── eda/ │ └── feature_importance/ ├── scripts/ # Python scripts for preprocessing, training, etc. ├── utils/ # Helper modules and functions ├── .gitignore ├── README.md ├── requirements.txt ├── app.py └── ... </code> </code></pre>
+premium-prediction-model/
+├── models/ # Saved machine learning models
+├── output_graphs/ # Visualizations (EDA, Feature Importance, etc.)
+│ ├── bivariate/
+│ ├── eda/
+│ └── feature_importance/
+├── scripts/ # Python scripts for preprocessing, training, etc.
+├── utils/ # Helper modules and functions
+├── .gitignore
+├── README.md
+├── requirements.txt
+├── app.py
+└── ...
 
 ---
 

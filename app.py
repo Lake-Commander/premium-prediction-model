@@ -4,7 +4,7 @@ import joblib
 import os
 
 # Load the model and scaler
-model = joblib.load("models/final_model.pkl")
+model = joblib.load("models/rf_model.pkl")
 scaler = joblib.load("models/scaler.pkl")
 feature_order = joblib.load("models/feature_order.pkl")
 

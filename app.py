@@ -127,3 +127,51 @@ if submitted:
 
     except Exception as e:
         st.error(f"❌ Prediction failed: {str(e)}")
+        
+        # === EDA Graphs Section ===
+st.markdown("---")
+st.header("📈 Exploratory Data Analysis (EDA)")
+
+# === Univariate Analysis ===
+with st.expander("🔹 Univariate Analysis"):
+    st.subheader("📊 Numerical Features")
+    st.image("univariate/hist_age.png", caption="Age Distribution", use_column_width=True)
+    st.image("univariate/hist_health_score.png", caption="Health Score Distribution", use_column_width=True)
+    st.image("univariate/hist_credit_score.png", caption="Credit Score Distribution", use_column_width=True)
+    st.image("univariate/hist_annual_income.png", caption="Annual Income Distribution", use_column_width=True)
+    st.image("univariate/hist_insurance_duration.png", caption="Insurance Duration Distribution", use_column_width=True)
+
+    st.subheader("📋 Categorical Features")
+    st.image("univariate/count_gender.png", caption="Gender Count", use_column_width=True)
+    st.image("univariate/count_education_level.png", caption="Education Level Count", use_column_width=True)
+    st.image("univariate/count_policy_type.png", caption="Policy Type Count", use_column_width=True)
+
+# === Bivariate Analysis ===
+with st.expander("🔸 Bivariate Analysis"):
+    st.subheader("📈 Relationships with Target")
+    st.image("output_graphs/bivariate/scatterplot_Annual Income.png", caption="Annual Income vs Premium", use_column_width=True)
+    st.image("output_graphs/bivariate/scatterplot_Health Score.png", caption="Health Score vs Premium", use_column_width=True)
+    st.image("output_graphs/bivariate/scatterplot_Age.png", caption="Age vs Premium", use_column_width=True)
+
+    st.subheader("🧩 Boxplots by Category")
+    st.image("output_graphs/bivariate/boxplot_Gender.png", caption="Gender vs Premium", use_column_width=True)
+    st.image("output_graphs/bivariate/boxplot_Policy Type.png", caption="Policy Type vs Premium", use_column_width=True)
+    st.image("output_graphs/bivariate/boxplot_Occupation.png", caption="Occupation vs Premium", use_column_width=True)
+
+    st.subheader("📌 Correlation Heatmap")
+    st.image("output_graphs/bivariate/correlation_heatmap.png", caption="Correlation Matrix", use_column_width=True)
+
+# === Multivariate Analysis ===
+with st.expander("🔺 Multivariate Analysis"):
+    st.subheader("📊 Interaction Trends")
+    st.image("multivariate/Age_vs_Premium Amount_regplot.png", caption="Age vs Premium (Regplot)", use_column_width=True)
+    st.image("multivariate/Annual Income_vs_Premium Amount_regplot.png", caption="Annual Income vs Premium (Regplot)", use_column_width=True)
+    st.image("multivariate/Previous Claims_vs_Premium Amount_regplot.png", caption="Previous Claims vs Premium (Regplot)", use_column_width=True)
+
+    st.subheader("🧠 Categorical Interactions")
+    st.image("multivariate/groupedbar_education_level_marital_status_by_gender.png", caption="Education vs Marital Status by Gender", use_column_width=True)
+    st.image("multivariate/groupedbar_smoking_status_exercise_frequency_by_policy_type.png", caption="Smoking & Exercise vs Policy Type", use_column_width=True)
+
+    st.subheader("📌 Full Correlation Matrix")
+    st.image("premium_trend_correlation_categorical/correlation_matrix.png", caption="Full Correlation Heatmap", use_column_width=True)
+

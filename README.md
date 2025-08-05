@@ -285,6 +285,13 @@ Then go to [http://localhost:8501](http://localhost:8501) in your browser.
 
 ---
 
+## 🌐 Live Demo
+
+You can also try out the app live on **Streamlit Cloud**:
+
+👉 [Click here to open the app](https://premium-prediction-model.streamlit.app/)
+
+
 ## 🧪 Example Use Case
 
 Given a user's input like:

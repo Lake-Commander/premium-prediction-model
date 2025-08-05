@@ -271,7 +271,7 @@ pip install -r requirements.txt
 ### 4. Run the Streamlit App
 streamlit run streamlit_app.py
 
-'''bash
+---
 
 go to http://localhost:8501
 

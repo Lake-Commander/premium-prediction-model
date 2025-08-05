@@ -16,7 +16,7 @@ The entire project pipeline includes data preprocessing, exploratory analysis, f
 To develop and deploy a machine learning model that:
 - Predicts the **premium amount** a customer is likely to pay.
 - Uses customer features such as income, age, vehicle age, claims history, health status, and more.
-- Helps insurance companies make **data-driven pricing decisions**.
+- Create a way of helping insurance companies make **data-driven pricing decisions**.
 - Offers an **interactive Streamlit web app** for easy use by non-technical users.
 
 ---

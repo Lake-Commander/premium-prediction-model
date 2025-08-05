@@ -68,19 +68,28 @@ To develop and deploy a machine learning model that:
 
 ## 📦 Project Structure
 
+```
 premium-prediction-model/
-├── models/ # Saved machine learning models
-├── output_graphs/ # Visualizations (EDA, Feature Importance, etc.)
-│ ├── bivariate/
-│ ├── eda/
-│ └── feature_importance/
-├── scripts/ # Python scripts for preprocessing, training, etc.
-├── utils/ # Helper modules and functions
+├── models/
+├── output_graphs/
+│   ├── bivariate/
+│   ├── eda/
+│   └── feature_importance/
+├── scripts/
+├── utils/
 ├── .gitignore
 ├── README.md
 ├── requirements.txt
 ├── app.py
 └── ...
+```
+
+**Descriptions:**
+- `models/`: Saved machine learning models  
+- `output_graphs/`: Visualizations (EDA, Feature Importance, etc.)  
+- `scripts/`: Python scripts for preprocessing, training, etc.  
+- `utils/`: Helper modules and functions  
+
 
 ---
 
@@ -135,7 +144,7 @@ Given a user's input like:
 - **Claims History**: 1 claim  
 - **Lifestyle**: Smoker, Urban Resident  
 
-➡️ The model will predict an appropriate premium amount, e.g., **₦235,000**.
+➡️ The model will predict an appropriate premium amount.
 
 ---
 

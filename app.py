@@ -4,9 +4,9 @@ import pandas as pd
 import joblib
 
 # Load model, scaler, feature order
-model = joblib.load("rf_model.pkl")
-scaler = joblib.load("scaler.pkl")
-feature_order = joblib.load("feature_order.pkl")
+model = joblib.load("models/rf_model.pkl")
+scaler = joblib.load("models/scaler.pkl")
+feature_order = joblib.load("models/feature_order.pkl")
 
 st.set_page_config(page_title="Insurance Premium Predictor", layout="centered")
 st.title("💰 Insurance Premium Prediction App")

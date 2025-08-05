@@ -262,6 +262,62 @@ git clone https://github.com/YOUR-USERNAME/premium-prediction-model.git
 cd premium-prediction-model
 
 ### 2. Create a Virtual Environment
-
+python -m venv venv
+source venv/bin/activate   # On Windows use: venv\Scripts\activate
 
 ### 3. Install Dependencies
+pip install -r requirements.txt
+
+### 4. Run the Streamlit App
+streamlit run streamlit_app.py
+
+'''bash
+
+go to http://localhost:8501
+
+## 🧪 Example Use Case
+Given a user's input like:
+
+Age: 35
+
+Health Score: 7.5
+
+Annual Income: ₦3,500,000
+
+Vehicle Age: 3 years
+
+Number of Dependents: 2
+
+Claims History: 1 claim
+
+Lifestyle: Smoker, Urban Resident
+
+The model will predict an appropriate premium amount, e.g., ₦235,000.
+
+## 🙏 Acknowledgments
+This project was built under the guidance and mentorship of the 3MTT (Three Million Technical Talent) program by the National Information Technology Development Agency (NITDA), Nigeria.
+
+We sincerely appreciate NITDA and the Federal Ministry of Communications, Innovation and Digital Economy for the opportunity to learn, grow, and contribute to Nigeria’s digital transformation journey.
+
+Thank you for empowering Nigerian youths with the skills to build real-world solutions.
+
+## 🧠 Skills Demonstrated
+Data Cleaning and Transformation
+
+Exploratory Data Analysis (EDA)
+
+Feature Engineering
+
+Regression Modeling
+
+Model Evaluation and Selection
+
+Streamlit App Development
+
+Git & GitHub Collaboration
+
+## 🔗 License
+This project is for educational and demonstration purposes only.
+
+## 💬 Contact
+Feel free to reach out if you have any feedback or questions!

@@ -4,73 +4,123 @@ import numpy as np
 import joblib
 import os
 
-# === Load model, scaler, and features ===
+# ======================================
+# 📊 EDA DASHBOARD SECTION
+# ======================================
+st.set_page_config(page_title="Insurance Premium Predictor", layout="wide")
+
+st.title("📊 Insurance Premium EDA Dashboard")
+
+def show_images_from_folder(folder, title=None):
+    if title:
+        st.subheader(title)
+    if not os.path.exists(folder):
+        st.warning(f"Folder not found: {folder}")
+        return
+    for file in sorted(os.listdir(folder)):
+        if file.endswith(".png"):
+            st.image(
+                os.path.join(folder, file),
+                caption=file.replace("_", " ").replace(".png", ""),
+                use_container_width=True
+            )
+
+# Tabs for sections
+tabs = st.tabs(["📌 Univariate", "🔁 Bivariate", "🧩 Multivariate", "📎 Categorical Trends"])
+
+with tabs[0]:
+    st.markdown("### 📌 Univariate Analysis")
+    show_images_from_folder("univariate", "Univariate Distributions")
+
+with tabs[1]:
+    st.markdown("### 🔁 Bivariate Analysis")
+    show_images_from_folder("output_graphs/bivariate", "Output Graphs (Bivariate)")
+    show_images_from_folder("bivariate_analysis", "Bivariate Analysis")
+
+with tabs[2]:
+    st.markdown("### 🧩 Multivariate Analysis")
+    show_images_from_folder("multivariate", "Multivariate Trends")
+    show_images_from_folder("output_graphs/multivariate", "Output Graphs (Multivariate)")
+
+with tabs[3]:
+    st.markdown("### 📎 Categorical Correlation & Premium Trends")
+    show_images_from_folder("premium_trend_correlation_categorical", "Categorical Premium Trends")
+
+# ======================================
+# 🤖 PREMIUM PREDICTION SECTION
+# ======================================
+st.markdown("---")
+st.title("💼 Insurance Premium Prediction")
+
 st.markdown("🔄 Loading model, scaler, and top features...")
 model = joblib.load("models/random_forest_model.pkl")
 scaler = joblib.load("models/scaler.pkl")
 top_features = joblib.load("models/feature_order.pkl")
+st.success("✅ Model, scaler, and features loaded.")
 
-st.success("✅ Loaded model")
-st.success("✅ Loaded scaler")
-st.success(f"✅ Loaded top features: {len(top_features)} features")
-
-# === Create Input Form ===
-st.title("💼 Insurance Premium Prediction")
-st.write("Fill in the details below to predict the expected premium amount.")
+st.write("### Enter customer details below:")
 
 with st.form("input_form"):
-    health_score = st.slider("Health Score", 0, 100, 75)
-    age = st.slider("Age", 18, 100, 40)
-    credit_score = st.slider("Credit Score", 300, 850, 680)
-    vehicle_age = st.number_input("Vehicle Age (years)", min_value=0.0, max_value=30.0, value=3.0)
-    annual_income = st.number_input("Annual Income (₦)", min_value=10000.0, value=5_000_000.0)
-    income_log = np.log1p(annual_income)
+    col1, col2, col3 = st.columns(3)
 
-    insurance_duration = st.slider("Insurance Duration (years)", 0, 50, 3)
-    dependents = st.slider("Number of Dependents", 0, 10, 1)
-    prev_claims = st.slider("Previous Claims", 0, 5, 1)
-    prev_claims_log = np.log1p(prev_claims)
+    with col1:
+        health_score = st.slider("Health Score", 0, 100, 75)
+        age = st.slider("Age", 18, 100, 40)
+        credit_score = st.slider("Credit Score", 300, 850, 680)
+        vehicle_age = st.number_input("Vehicle Age (years)", min_value=0.0, max_value=30.0, value=3.0)
 
-    # One-hot encoded categorical fields
-    gender_male = st.selectbox("Gender", ["Male", "Female"]) == "Male"
-    smoker_yes = st.selectbox("Smoking Status", ["Yes", "No"]) == "Yes"
+    with col2:
+        annual_income = st.number_input("Annual Income (₦)", min_value=10000.0, value=5_000_000.0)
+        insurance_duration = st.slider("Insurance Duration (years)", 0, 50, 3)
+        dependents = st.slider("Number of Dependents", 0, 10, 1)
+        prev_claims = st.slider("Previous Claims", 0, 5, 1)
 
-    location = st.selectbox("Location", ["Urban", "Suburban", "Rural"])
-    loc_suburban = location == "Suburban"
-    loc_urban = location == "Urban"
+    with col3:
+        gender_male = st.selectbox("Gender", ["Male", "Female"]) == "Male"
+        smoker_yes = st.selectbox("Smoking Status", ["Yes", "No"]) == "Yes"
+        location = st.selectbox("Location", ["Urban", "Suburban", "Rural"])
+        property_type = st.selectbox("Property Type", ["House", "Condo", "Apartment"])
 
-    property_type = st.selectbox("Property Type", ["House", "Condo", "Apartment"])
-    prop_condo = property_type == "Condo"
-    prop_house = property_type == "House"
-
-    policy_type = st.selectbox("Policy Type", ["Basic", "Comprehensive", "Premium"])
-    policy_premium = policy_type == "Premium"
-    policy_comprehensive = policy_type == "Comprehensive"
-
-    feedback = st.selectbox("Customer Feedback", ["Good", "Average", "Poor"])
-    feedback_poor = feedback == "Poor"
-    feedback_good = feedback == "Good"
-
-    marital_status = st.selectbox("Marital Status", ["Single", "Married", "Divorced"])
-    ms_single = marital_status == "Single"
-    ms_married = marital_status == "Married"
+    col4, col5, col6 = st.columns(3)
+    with col4:
+        policy_type = st.selectbox("Policy Type", ["Basic", "Comprehensive", "Premium"])
+    with col5:
+        feedback = st.selectbox("Customer Feedback", ["Good", "Average", "Poor"])
+    with col6:
+        marital_status = st.selectbox("Marital Status", ["Single", "Married", "Divorced"])
 
     occupation_unknown = st.checkbox("Occupation Unknown")
 
-    exercise_freq = st.selectbox("Exercise Frequency", ["Daily", "Weekly", "Monthly", "Rarely"])
+    col7, col8 = st.columns(2)
+    with col7:
+        exercise_freq = st.selectbox("Exercise Frequency", ["Daily", "Weekly", "Monthly", "Rarely"])
+    with col8:
+        education = st.selectbox("Education Level", ["High School", "Bachelor's", "Master's", "PhD"])
+
+    submitted = st.form_submit_button("📈 Predict Premium")
+
+# === Process Input and Predict ===
+if submitted:
+    income_log = np.log1p(annual_income)
+    prev_claims_log = np.log1p(prev_claims)
+
+    loc_suburban = location == "Suburban"
+    loc_urban = location == "Urban"
+    prop_condo = property_type == "Condo"
+    prop_house = property_type == "House"
+    policy_premium = policy_type == "Premium"
+    policy_comprehensive = policy_type == "Comprehensive"
+    feedback_poor = feedback == "Poor"
+    feedback_good = feedback == "Good"
+    ms_single = marital_status == "Single"
+    ms_married = marital_status == "Married"
     ex_weekly = exercise_freq == "Weekly"
     ex_monthly = exercise_freq == "Monthly"
     ex_rarely = exercise_freq == "Rarely"
-
-    education = st.selectbox("Education Level", ["High School", "Bachelor's", "Master's", "PhD"])
     edu_hs = education == "High School"
     edu_masters = education == "Master's"
     edu_phd = education == "PhD"
 
-    submitted = st.form_submit_button("Predict")
-
-# === Prepare Input and Predict ===
-if submitted:
     input_data = {
         'Health Score': health_score,
         'Age': age,
@@ -101,14 +151,11 @@ if submitted:
         "Education Level_Master's": int(edu_masters),
         'Exercise Frequency_Weekly': int(ex_weekly),
         'Education Level_High School': int(edu_hs),
-        # DO NOT include 'Premium Amount' — that’s the target!
     }
 
-    # Keep only expected features (no target)
     cleaned_input = {feat: input_data.get(feat, 0) for feat in top_features}
     ordered_df = pd.DataFrame([cleaned_input], columns=top_features)
 
-    # === Feature sanity check ===
     if hasattr(scaler, 'feature_names_in_'):
         missing = set(scaler.feature_names_in_) - set(ordered_df.columns)
         extra = set(ordered_df.columns) - set(scaler.feature_names_in_)
@@ -116,55 +163,12 @@ if submitted:
             st.error(f"❌ Feature mismatch. Missing: {missing}, Extra: {extra}")
     try:
         scaled_input = scaler.transform(ordered_df)
-        st.write("🔢 SCALED INPUT (used for prediction):")
+        st.write("🔢 Scaled Input Used for Prediction:")
         st.dataframe(pd.DataFrame(scaled_input, columns=top_features))
 
         raw_output = model.predict(scaled_input)
-        st.write("🧠 RAW MODEL OUTPUT:")
-        st.write(raw_output)
-
         prediction = max(0, raw_output[0])
-        st.success(f"💡 Predicted Premium Amount: ${prediction:,.2f}")
+        st.success(f"💡 **Predicted Premium Amount:** ₦{prediction:,.2f}")
 
     except Exception as e:
         st.error(f"❌ Prediction failed: {str(e)}")
-        
-        # === EDA Graphs Section ===
-st.markdown("---")
-st.header("📈 Exploratory Data Analysis (EDA)")
-
-def show_images_from_folder(folder, title=None):
-    if title:
-        st.subheader(title)
-    if not os.path.exists(folder):
-        st.warning(f"Folder not found: {folder}")
-        return
-    for file in sorted(os.listdir(folder)):
-        if file.endswith(".png"):
-            st.image(os.path.join(folder, file), caption=file.replace("_", " ").replace(".png", ""), use_column_width=True)
-
-st.markdown("---")
-st.title("📊 Insurance Premium EDA Dashboard")
-
-# Tabs for sections
-tabs = st.tabs(["📌 Univariate", "🔁 Bivariate", "🧩 Multivariate", "📎 Categorical Trends"])
-
-with tabs[0]:
-    st.markdown("### 📌 Univariate Analysis")
-    show_images_from_folder("univariate", "Univariate Distributions")
-
-with tabs[1]:
-    st.markdown("### 🔁 Bivariate Analysis")
-    show_images_from_folder("output_graphs/bivariate", "Output Graphs (Bivariate)")
-    show_images_from_folder("bivariate_analysis", "Bivariate Analysis")
-    
-with tabs[2]:
-    st.markdown("### 🧩 Multivariate Analysis")
-    show_images_from_folder("multivariate", "Multivariate Trends")
-    show_images_from_folder("output_graphs/multivariate", "Output Graphs (Multivariate)")
-
-with tabs[3]:
-    st.markdown("### 📎 Categorical Correlation & Premium Trends")
-    show_images_from_folder("premium_trend_correlation_categorical", "Categorical Premium Trends")
-
-

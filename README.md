@@ -36,7 +36,6 @@ To develop and deploy a machine learning model that:
 
 ---
 
-## 📦 Project Structure
 
 # 🛡️ Insurance Premium Prediction Model
 

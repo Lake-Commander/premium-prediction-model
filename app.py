@@ -164,9 +164,9 @@ with st.expander("🔸 Bivariate Analysis"):
 # === Multivariate Analysis ===
 with st.expander("🔺 Multivariate Analysis"):
     st.subheader("📊 Interaction Trends")
-    st.image("multivariate/Age_vs_Premium Amount_regplot.png", caption="Age vs Premium (Regplot)", use_column_width=True)
-    st.image("multivariate/Annual Income_vs_Premium Amount_regplot.png", caption="Annual Income vs Premium (Regplot)", use_column_width=True)
-    st.image("multivariate/Previous Claims_vs_Premium Amount_regplot.png", caption="Previous Claims vs Premium (Regplot)", use_column_width=True)
+    st.image("multivariate/Age_vs_Premium_Amount_regplot.png", caption="Age vs Premium (Regplot)", use_column_width=True)
+    st.image("multivariate/Annual Income_vs_Premium_Amount_regplot.png", caption="Annual Income vs Premium (Regplot)", use_column_width=True)
+    st.image("multivariate/Previous Claims_vs_Premium_Amount_regplot.png", caption="Previous Claims vs Premium (Regplot)", use_column_width=True)
 
     st.subheader("🧠 Categorical Interactions")
     st.image("multivariate/groupedbar_education_level_marital_status_by_gender.png", caption="Education vs Marital Status by Gender", use_column_width=True)

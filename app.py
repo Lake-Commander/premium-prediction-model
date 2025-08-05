@@ -123,7 +123,7 @@ if submitted:
         st.write(raw_output)
 
         prediction = max(0, raw_output[0])
-        st.success(f"💡 Predicted Premium Amount: ₦{prediction:,.2f}")
+        st.success(f"💡 Predicted Premium Amount: ${prediction:,.2f}")
 
     except Exception as e:
         st.error(f"❌ Prediction failed: {str(e)}")
